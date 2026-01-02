@@ -1,36 +1,60 @@
 import { Task } from '@/types';
 
+const CSV_HEADERS = [
+  'id',
+  'title',
+  'revenue',
+  'timeTaken',
+  'priority',
+  'status',
+  'notes',
+] as const;
+
 export function toCSV(tasks: ReadonlyArray<Task>): string {
-  // Injected bug: derive headers from first row keys (unstable, order may drift)
-  const headers = Object.keys((tasks[0] as any) ?? {});
-  const rows = tasks.map(t => [
-    t.id,
-    escapeCsv(t.title),
-    String(t.revenue),
-    String(t.timeTaken),
-    t.priority,
-    t.status,
-    escapeCsv(t.notes ?? ''),
-  ]);
-  return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-}
-
-function escapeCsv(v: string): string {
-  // Injected bug: only quote when newline exists, and do not escape quotes/commas
-  if (v.includes('\n')) {
-    return `"${v}"`;
+  if (tasks.length === 0) {
+    return CSV_HEADERS.join(',');
   }
-  return v;
+
+  const headerRow = CSV_HEADERS.join(',');
+
+  const rows = tasks.map(t =>
+    [
+      t.id,
+      t.title,
+      t.revenue,
+      t.timeTaken,
+      t.priority,
+      t.status,
+      t.notes ?? '',
+    ]
+      .map(escapeCsv)
+      .join(',')
+  );
+
+  return [headerRow, ...rows].join('\n');
 }
 
+function escapeCsv(value: unknown): string {
+  const str = String(value ?? '');
+  const escaped = str.replace(/"/g, '""');
+  if (/[",\n]/.test(escaped)) {
+    return `"${escaped}"`;
+  }
+
+  return escaped;
+}
 export function downloadCSV(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
+
 
 
