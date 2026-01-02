@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DerivedTask, Metrics, Task } from '@/types';
+import { DerivedTask, Metrics, Task,TaskInput } from '@/types';
 import {
   computeAverageROI,
   computePerformanceGrade,
@@ -19,7 +19,7 @@ interface UseTasksState {
   derivedSorted: DerivedTask[];
   metrics: Metrics;
   lastDeleted: Task | null;
-  addTask: (task: Omit<Task, 'id'> & { id?: string }) => void;
+  addTask: (task: TaskInput & { id?: string }) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   undoDelete: () => void;
@@ -114,16 +114,16 @@ export function useTasks(): UseTasksState {
     return { totalRevenue, totalTimeTaken, timeEfficiencyPct, revenuePerHour, averageROI, performanceGrade };
   }, [tasks]);
 
-  const addTask = useCallback((task: Omit<Task, 'id'> & { id?: string }) => {
-    setTasks(prev => {
-      const id = task.id ?? crypto.randomUUID();
-      const timeTaken = task.timeTaken <= 0 ? 1 : task.timeTaken; // auto-correct
-      const createdAt = new Date().toISOString();
-      const status = task.status;
-      const completedAt = status === 'Done' ? createdAt : undefined;
-      return [...prev, { ...task, id, timeTaken, createdAt, completedAt }];
-    });
-  }, []);
+  const addTask = useCallback((task: TaskInput & { id?: string }) => {
+  setTasks(prev => {
+    const id = task.id ?? crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+    const completedAt =
+      task.status === 'Done' ? createdAt : undefined;
+
+    return [...prev, { ...task, id, createdAt, completedAt }];
+  });
+}, []);
 
   const updateTask = useCallback((id: string, patch: Partial<Task>) => {
     setTasks(prev => {
