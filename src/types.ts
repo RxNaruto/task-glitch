@@ -13,6 +13,15 @@ export interface Task {
   completedAt?: string; // ISO date string if Done
 }
 
+export type TaskInput={
+  title: string;
+  revenue: number;
+  timeTaken: number;
+  priority: Priority;
+  status: Status;
+  notes?: string;
+}
+
 export interface DerivedTask extends Task {
   roi: number | null; // null means N/A
   priorityWeight: 3 | 2 | 1;
