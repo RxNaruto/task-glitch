@@ -41,7 +41,9 @@ export function sortTasks(tasks: ReadonlyArray<DerivedTask>): DerivedTask[] {
 }
 
 export function computeTotalRevenue(tasks: ReadonlyArray<Task>): number {
-  return tasks.filter(t => t.status === 'Done').reduce((sum, t) => sum + t.revenue, 0);
+  return tasks
+    .filter(t => t.status === 'Done' && Number.isFinite(t.revenue))
+    .reduce((sum, t) => sum + t.revenue, 0);
 }
 
 export function computeTotalTimeTaken(tasks: ReadonlyArray<Task>): number {
@@ -56,7 +58,11 @@ export function computeTimeEfficiency(tasks: ReadonlyArray<Task>): number {
 
 export function computeRevenuePerHour(tasks: ReadonlyArray<Task>): number {
   const revenue = computeTotalRevenue(tasks);
-  const time = computeTotalTimeTaken(tasks);
+  const time = tasks
+    .map(t => t.timeTaken)
+    .filter(t => Number.isFinite(t) && t > 0)
+    .reduce((s, t) => s + t, 0);
+
   return time > 0 ? revenue / time : 0;
 }
 
