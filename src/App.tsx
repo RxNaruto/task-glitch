@@ -19,8 +19,7 @@ import {
 } from '@/utils/logic';
 
 function AppContent() {
-  const { loading, error, metrics, derivedSorted, addTask, updateTask, deleteTask, undoDelete, lastDeleted } = useTasksContext();
-  const handleCloseUndo = () => {};
+  const { loading, error, metrics, derivedSorted, addTask, updateTask, deleteTask, undoDelete, lastDeleted,clearLastDelete } = useTasksContext();
   const [q, setQ] = useState('');
   const [fStatus, setFStatus] = useState<string>('All');
   const [fPriority, setFPriority] = useState<string>('All');
@@ -41,7 +40,6 @@ function AppContent() {
       return true;
     });
   }, [derivedSorted, q, fStatus, fPriority]);
-
   const handleAdd = useCallback((payload: Omit<Task, 'id'>) => {
     addTask(payload);
     setActivity(prev => [createActivity('add', `Added: ${payload.title}`), ...prev].slice(0, 50));
@@ -58,6 +56,10 @@ function AppContent() {
     undoDelete();
     setActivity(prev => [createActivity('undo', 'Undo delete'), ...prev].slice(0, 50));
   }, [undoDelete, createActivity]);
+
+  const handleCloseUndo = useCallback(()=>{
+    clearLastDelete();
+  },[clearLastDelete])
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
